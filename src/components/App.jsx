@@ -14,6 +14,7 @@ export class App extends Component {
     images: [],
     loading: false,
     page: 1,
+    lastPage: 1,
     error: null,
     showModal: false,
     largeImageURL: '',
@@ -34,7 +35,10 @@ export class App extends Component {
       this.setState({ loading: true });
       const { searchName, page } = this.state;
       const data = await searchImages(searchName, page);
-      this.setState(({ images }) => ({ images: [...images, ...data.hits] }));
+      this.setState(({ images }) => ({
+        images: [...images, ...data.hits],
+        lastPage: data.totalHits / 12,
+      }));
     } catch (error) {
       this.setState({ error: error.message });
     } finally {
@@ -55,7 +59,8 @@ export class App extends Component {
   };
 
   render() {
-    const { images, error, loading, showModal, largeImageURL } = this.state;
+    const { images, error, loading, showModal, largeImageURL, page, lastPage } =
+      this.state;
     return (
       <div>
         <Searchbar onSubmit={this.hendleFormSubmit} />
@@ -64,7 +69,9 @@ export class App extends Component {
 
         {error && <p>{error}</p>}
 
-        {images.length > 0 && !loading && <Button loadMore={this.loadMore} />}
+        {images.length > 0 && !loading && page < lastPage && (
+          <Button loadMore={this.loadMore} />
+        )}
 
         {loading && (
           <Audio
