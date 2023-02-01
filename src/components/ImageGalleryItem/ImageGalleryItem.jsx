@@ -1,15 +1,24 @@
-const ImageGalleryItem = ({ key, webImg, largeImg }) => {
+import PropTypes from 'prop-types';
+
+import styles from './imageGalleryItem.module.css';
+
+const ImageGalleryItem = ({ webImg, largeImg, onClickImg }) => {
   return (
-    <li>
-      <img src={webImg} alt="" />
+    <li
+      onClick={() => {
+        onClickImg(largeImg);
+      }}
+      className={styles.imgGallery}
+    >
+      <img src={webImg} alt="" className={styles.img} />
     </li>
   );
 };
-//   return (
-//     <li key={image.id} class="gallery-item">
-//       <img src={image.webformatURL} alt="foto" />
-//     </li>
-//   );
-// };
 
 export default ImageGalleryItem;
+
+ImageGalleryItem.propTypes = {
+  webImg: PropTypes.string.isRequired,
+  webImlargeImg: PropTypes.string.isRequired,
+  onClickImg: PropTypes.func.isRequired,
+};

@@ -1,8 +1,12 @@
 import { Component } from 'react';
+import { Audio } from 'react-loader-spinner';
+
+import { searchImages } from 'servise/API';
+
 import { Searchbar } from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
-import { searchImages } from 'servise/API';
 import Button from './Button/Button';
+import { Modal } from './Modal/Modal';
 
 export class App extends Component {
   state = {
@@ -11,24 +15,25 @@ export class App extends Component {
     loading: false,
     page: 1,
     error: null,
+    showModal: false,
+    largeImageURL: '',
   };
 
   hendleFormSubmit = searchName => {
-    this.setState({ searchName });
+    this.setState({ searchName, images: [], page: 1 });
   };
 
   componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchName !== this.state.searchName ||
-      prevState.page !== this.state.page
-    )
+    const { searchName, page } = this.state;
+    if (prevState.searchName !== searchName || prevState.page !== page)
       this.searchImages();
   }
 
   async searchImages() {
     try {
       this.setState({ loading: true });
-      const data = await searchImages(this.state.searchName, this.state.page);
+      const { searchName, page } = this.state;
+      const data = await searchImages(searchName, page);
       this.setState(({ images }) => ({ images: [...images, ...data.hits] }));
     } catch (error) {
       this.setState({ error: error.message });
@@ -37,14 +42,47 @@ export class App extends Component {
     }
   }
 
+  loadMore = () => {
+    this.setState(({ page }) => ({ page: page + 1 }));
+  };
+
+  onClickImage = url => {
+    this.setState({ largeImageURL: url, showModal: true });
+  };
+
+  onCloseModal = () => {
+    this.setState({ largeImageURL: '', showModal: false });
+  };
+
   render() {
+    const { images, error, loading, showModal, largeImageURL } = this.state;
     return (
       <div>
         <Searchbar onSubmit={this.hendleFormSubmit} />
-        <ImageGallery images={this.state.images} />
-        {this.state.images.length && <Button />}
-        {this.state.error && <p>{this.state.error}</p>}
-        {this.state.loading && <p>...Loading</p>}
+
+        <ImageGallery images={images} onClickImg={this.onClickImage} />
+
+        {error && <p>{error}</p>}
+
+        {images.length > 0 && !loading && <Button loadMore={this.loadMore} />}
+
+        {loading && (
+          <Audio
+            height="80"
+            width="80"
+            radius="9"
+            color="green"
+            ariaLabel="loading"
+            wrapperStyle=""
+            wrapperClass=""
+          />
+        )}
+
+        {showModal && (
+          <Modal close={this.onCloseModal}>
+            <img src={largeImageURL} width="800px" alt="" />
+          </Modal>
+        )}
       </div>
     );
   }
